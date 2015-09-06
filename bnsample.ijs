@@ -84,7 +84,7 @@ NB. j implementation is same speed at 400bit modulus. 4x slower at 800bit modulu
 lcgj =: 3 : 0
 'p a s' =. y
 seed =: s
-roll =: (] | 'seed' (][ [ assign  a + ]) (p|seed) (p|*) 3 : 'seed')"0
+roll =: (] | 'seed' ([ assign  a + ]) (p|~seed) (p|*) 3 : 'seed')"0
 1
 )
 bbsj =: 3 : 0  NB. 60x slower than BBS (BN implementation)
@@ -102,9 +102,11 @@ coinsert C =: '' conew x
 'P A S ' =: getfrom__C("0) 1{:: y
 M =: getE__C a:
 BNmod__C  M;P;S;CTX__C
+roll =: ([: BNmod_word__C S;] [[: BNmod_add__C S;S;A;P;CTX__C [[:BNmod_mul__C S;S;M;P;CTX__C"_)"0
+1
 )
 new =: 4 : ' (x,&< y) conew coself a:'  NB. x is locale to inherit from
-roll =: 3 : 0"0
+rollE =: 3 : 0"0
 BNmod_mul__C S;S;M;P;CTX__C
 BNmod_add__C S;S;A;P;CTX__C
 BNmod_word__C S;y
@@ -118,9 +120,11 @@ create =: 3 : 0
 x =. 0 {:: y
 coinsert C =: '' conew x
 'P S ' =: getfrom__C("0) 1{:: y
+roll =: ([: BNmod_word__C S;][ [:BNmod_sqr__C S;S;P;CTX__C"_)"0
+1
 )
 new =: 4 : ' (x,&< y) conew coself a:'  NB. x is locale to inherit from
-roll =: 3 : 0"0
+rollE =: 3 : 0"0
 BNmod_sqr__C S;S;P;CTX__C
 BNmod_word__C S;y
 )
