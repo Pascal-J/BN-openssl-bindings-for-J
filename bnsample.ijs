@@ -77,7 +77,7 @@ end.  1
 NB. seed modified on each call.
 NB. creates an object with roll function that takes word to reduce to.
 lCG =: 3 : 0 NB. returns lcg object class.  y:  modPrimeX addX  SeedX
-(coself a:) new_lcg_ pD new y
+(coself a:) new_lcg_ new y
 )
 BBS =: 3 : '(coself a:) new_blum_ pD new y'
 NB. j implementation is same speed at 400bit modulus. 4x slower at 800bit modulus
@@ -103,6 +103,10 @@ coinsert C =: '' conew x
 M =: getE__C a:
 BNmod__C  M;P;S;CTX__C
 roll =: ([: BNmod_word__C S;] [[: BNmod_add__C S;S;A;P;CTX__C [[:BNmod_mul__C S;S;M;P;CTX__C"_)"0
+NB. equivalent:
+a =. S,S,M,P,CTX__C
+b =. S,S,A,P,CTX__C
+roll =: ([: BNmod_word__C S;] [[: BNmod_add__C b [[:BNmod_mul__C a"_)"0
 1
 )
 new =: 4 : ' (x,&< y) conew coself a:'  NB. x is locale to inherit from
