@@ -49,3 +49,28 @@ This was written on windows 64 bit J8.02 or higher.  If it doesn't work on your 
 OPENSSL =: ...
 
 I'd appreciate any corrections to that line needed for your platform.
+
+sample commands, basics and testing:
+
+fibtest 5 -- fibonaci nth number.  shows OOP coding style.
+
+C =. '' conew 'ctx'  NB. create a context object
+
+a =. newM__C 0 2938472934 1293817923x  NB. create 3 managed BNs initialized to values.  
+BNadd__C ;/ a  NB. adds last 2 and places result in first.   
+   toX__C a  NB. displays the extended integer values in those BNs (firs one is now sum of other 2)  
+4232290857 2938472934 1293817923  
+BNadd__C a  NB. the boxing is optional if all parameters are pointers/integers  
+   killmanaged__C '' NB. deallocates memory for managed BNs in C.  
+   toX__C a  NB. can perhaps still read those memory locations (for a while) but they are random.  And you shouldn't.  
+4232290857 85900525586 4232290857   
+
+If you use 'ctxS' as the context object, accessing freed BN's will conveniently segfault (crash J) 
+
+   2 7 11 MRabinBN__C 19213x  NB. tests number y for prime using arbitrary list x.  
+1
+  l =. lCG__C 15485867 7234 456789x  NB. create a lcg with Prime (or near) Addition factor, Seed(smaller than prime)  
+  roll__l 4 4 $ 256
+
+  'l' coassign lCG__C 15485867 7234 456789x NB. same assignment as before, except it codestroys any previous assignment to l
+  
