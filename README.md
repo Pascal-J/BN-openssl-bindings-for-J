@@ -68,9 +68,9 @@ BNadd__C a  NB. the boxing is optional if all parameters are pointers/integers
 If you use 'ctxS' as the context object, accessing freed BN's will conveniently segfault (crash J) 
 
    2 7 11 MRabinBN__C 19213x  NB. tests number y for prime using arbitrary list x.  
-1
+1  
   l =. lCG__C 15485867 7234 456789x  NB. create a lcg with Prime (or near) Addition factor, Seed(smaller than prime)  
-  roll__l 4 4 $ 256
+  roll__l 4 4 $ 256  
 
   'l' coassign lCG__C 15485867 7234 456789x NB. same assignment as before, except it codestroys any previous assignment to l
   
