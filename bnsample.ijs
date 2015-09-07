@@ -90,7 +90,7 @@ roll =: (] | 'seed' ([ assign  a + ]) (p|~seed) (p|*) 3 : 'seed')"0
 bbsj =: 3 : 0  NB. 60x slower than BBS (BN implementation)
 'p s' =. y
 seedb =: s  
-rollb =: (] | 'seedb' assign  [: p&|@(*:) 3 : 'seedb')"0
+rollb =: (] | 'seedb' assign  [: p&|@(*~) 3 : 'seedb')"0
 1
 )
 

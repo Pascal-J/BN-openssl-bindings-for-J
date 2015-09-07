@@ -25,8 +25,8 @@ BN_bn2hex=: ' BN_bn2hex + c x ' ssl NB.char * BN_bn2hex(const BIGNUM *a);
 BN_hex2bn =:  ' BN_hex2bn + i *x *c' ssl  NB.(BIGNUM **a, const char *str);
 BNnum_bytes=: ' BN_num_bytes  i *i' ssl  NB. doest work as its macro?
 NB. int BN_num_bits(const BIGNUM *a)
-BN_num_bits=: ' BN_num_bits + i x' ssl
-num_bytes =: 0.125 <.@* BN_num_bits
+BNnum_bits=: ' BN_num_bits > + i x' ssl
+num_bytes =: 0.125 >.@* BNnum_bits
 BN2dec=: ' BN_bn2dec > +  x x' ssl NB. char *BN_bn2dec(const BIGNUM *num)
 dec2BN=: ' BN_dec2bn > + i *x *c' ssl NB. int BN_dec2bn(BIGNUM **num, const char *str)
 NB.BNbn2mpi=: ' BN_bn2mpi >+  x x' ssl  int BN_bn2mpi(const BIGNUM *a, unsigned char *to);
@@ -64,8 +64,9 @@ BNsub =:  ' BN_sub > + i x x x' ssl
 BNdiv =:  ' BN_div > + i x x x x x' ssl 
 NB. BNmod =:  ' BN_mod > + i x x x x' ssl  NB. this is innaccessible macro. use div with 2nd param null.
 BNmod =:  ' BN_nnmod > + i x x x x' ssl 
-
-               
+BNlshift =:  ' BN_lshift > + i x x i' ssl  NB.int BN_lshift(BIGNUM *r, const BIGNUM *a, int n);
+BNrshift =:  ' BN_rshift > + i x x i' ssl 
+BNmask_bits =:  ' BN_mask_bits > + i x i' ssl                
 NB. coclass 'OOP'
 NB. OOP_z_ =: <'OOP'
 NB. Cbase =: <'base'
@@ -150,7 +151,7 @@ NB. ---------------------------------------------------------
 cocurrent 'ctx'
 NB. =========================================================
 coinsert 'bnctx'
-clearmanaged =: 3 : 'MANAGED =: y [ BNfree@boxopen"0 MANAGED'
+
 new =: newI =: 3 : 0"0
  I =.  BNnew 0{.a.
  initlen =. dec2BN (,I);(": y)
@@ -161,8 +162,13 @@ toS =: 3 : 0"0
  o =. BN2dec  y
  memr o,0 _1 2
 )
+toS =: ([: memr 0 _1 2 ,~ BN2dec)"0
 dup =: BNdup"0
 dupM =: appendmanaged@:dup
+shift =:   [: : (] [ ]`(BNlshift@(];;~))`(BNrshift@(];];-@[))@.(*@[))"0   NB. dyad x is int > 0 lshift, < 0 rshift.  y is BN.
+NB. makes new temp BN, and returns xint of div/mult
+shiftN =: [: : ([ ((0{::]) XF@[ dup@:]`(BNlshift@((,<)~))`(BNrshift@(](,<)-@[))@.(*@[))  getE@];])"0
+mask =: (][([ <. BNnum_bits@]) BNmask_bits@:(;~)  ])"0 NB. dyad x is int # of bits.  Overwrites
 get =: 3 :  0
 I =. BNCTX_get CTX
 Ii =.  BNnew 0{.a.
@@ -181,9 +187,11 @@ getE =: 3 : 'BNCTX_get CTX'
 
 toX =: (0 ". 'x' ,~ toS)"0
 toW =: BNget_word"0
+XF =: BNfree ] toX NB.toX and free one BN
 NB. displays "results (all passed BN)" then clears mem.  Seg faults if y is not a BN (or fails if BN not in managed list) 
 XC =: 3 : ' MANAGED   (0 assert~ ''segfault saved: args should be BN- '', lr@])`(XCns@])@.(+/@(e.~)) y'
 XCns =: clearmanaged bind (i.0) ] toX 
+clearmanaged =: 3 : 'MANAGED =: y [ BNfree@boxopen"0 MANAGED'
 wCTX =: 1 : '(''CTX"_'' inlA (,<)("1)~ ])@:u'
 Align =: (,./)&(boxopen"_1)
 insert =: 1 : '(BNfree"_1 ][: toX  u/)@:new'
