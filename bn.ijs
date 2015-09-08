@@ -18,9 +18,10 @@ BNctxnew =: ' BN_CTX_new >+ x' ssl
 BNCTX_securenew =: ' BN_CTX_secure_new  > + x' ssl
 BNnew =: ' BN_new > + x' ssl  NB. probably don't use... unamanaged memory version.
 NB. BIGNUM *BN_bin2bn(const unsigned char *s,int len,BIGNUM *ret)
-BN2bn =: ' BN_bin2bn + *x *c l *x' ssl
+bin2BN =: ' BN_bin2bn > + x *c l x' ssl
 NB. int	BN_bn2bin(const BIGNUM *a, unsigned char *to)
 BN2bin =: ' BN_bn2bin + i x *c' ssl
+BN2mpi =: ' BN_bn2bin + i x *c' ssl	NB.int BN_bn2mpi(const BIGNUM *a, unsigned char *to);
 BN_bn2hex=: ' BN_bn2hex + c x ' ssl NB.char * BN_bn2hex(const BIGNUM *a);
 BN_hex2bn =:  ' BN_hex2bn + i *x *c' ssl  NB.(BIGNUM **a, const char *str);
 BNnum_bytes=: ' BN_num_bytes  i *i' ssl  NB. doest work as its macro?
@@ -28,7 +29,7 @@ NB. int BN_num_bits(const BIGNUM *a)
 BNnum_bits=: ' BN_num_bits > + i x' ssl
 num_bytes =: 0.125 >.@* BNnum_bits
 BN2dec=: ' BN_bn2dec > +  x x' ssl NB. char *BN_bn2dec(const BIGNUM *num)
-dec2BN=: ' BN_dec2bn > + i *x *c' ssl NB. int BN_dec2bn(BIGNUM **num, const char *str)
+dec2BN=: ' BN_dec2bn  + i *x *c' ssl NB. int BN_dec2bn(BIGNUM **num, const char *str)
 NB.BNbn2mpi=: ' BN_bn2mpi >+  x x' ssl  int BN_bn2mpi(const BIGNUM *a, unsigned char *to);
 NB. BN_print(BIO *fp, const BIGNUM *a);
 BNfree =:  ' BN_free > + n x' ssl"0 NB.BN_free(bn: pBIGNUM); cdecl
@@ -66,7 +67,10 @@ NB. BNmod =:  ' BN_mod > + i x x x x' ssl  NB. this is innaccessible macro. use 
 BNmod =:  ' BN_nnmod > + i x x x x' ssl"1 
 BNlshift =:  ' BN_lshift > + i x x i' ssl"1  NB.int BN_lshift(BIGNUM *r, const BIGNUM *a, int n);
 BNrshift =:  ' BN_rshift > + i x x i' ssl"1 
-BNmask_bits =:  ' BN_mask_bits > + i x i' ssl"1                
+BNmask_bits =:  ' BN_mask_bits > + i x i' ssl"1    
+
+BNfdec =: ([: (1 {.@{:: dec2BN)"1  (,0) ; ":)"0  NB. monad  
+BNfstr =: ([: (1 {.@{:: dec2BN)"1  (,0) ; ])every  NB. string of decimal representation.        
 NB. coclass 'OOP'
 NB. OOP_z_ =: <'OOP'
 NB. Cbase =: <'base'
@@ -152,11 +156,14 @@ cocurrent 'ctx'
 NB. =========================================================
 coinsert 'bnctx'
 
-new =: newI =: 3 : 0"0
- I =.  BNnew 0{.a.
- initlen =. dec2BN (,I);(": y)
- I
-)
+new =: newI =: BNfdec 
+
+NB. 3 : 0"0
+NB.  I =.  BNnew 0{.a.
+NB.  initlen =. dec2BN (,I);(": y)
+NB.  I
+NB. )
+NB. 
 newM =: (][appendmanaged)@:(new"0)
 toS =: 3 : 0"0
  o =. BN2dec  y
@@ -184,7 +191,19 @@ BNclear_free y
 I
 )
 getE =: 3 : 'BNCTX_get CTX'
-
+set =: ( dec2BN)@:(,@[ ; ":@])"0 0 NB. dyad. x is BN pointer, y  NB.3 : 'I =: BNfdec y'
+setbin =: ([: bin2BN ];#@];[)"0 1  NB. dyad BN v bytestr
+newB =: (,0)&setbin f.
+newBM =: appendmanaged@:newB f.
+toB =: ([: (2 {::BN2bin) ];' '#~ num_bytes)"0
+tobin =: 3 : 0
+i =. num_bytes I
+s =. i# ' '
+NB.so =. 15!:6 <'s'
+pD o =. BN2bin  (I);s
+NB.memr so,0 i 2
+s
+)
 toX =: (0 ". 'x' ,~ toS)"0 f.
 toW =: BNget_word"0
 XF =: BNfree ] toX NB.toX and free one BN
@@ -207,13 +226,14 @@ cocurrent 'bn'
 NB. =========================================================
 coinsert 'ssl'
 create =: 3 : 0
-I =:  BNnew 0{.a.
-NB.pD Ia =:  15!:6 <'I'
-initlen =. dec2BN (,I);(": y)
-assert. initlen > 0
-I
+NB.I =:  BNnew 0{.a.
+I =: 0
+pD initlen =. dec2BN (,I);(": y)
+assert. (0 {:: initlen) > 0
+I =: 1 {.@{:: initlen
 )
 
+NB.create =: 3 : 'I =: BNfdec y'  NB.quicker but assumes called right
 
 
 todec =: 3 : 0
@@ -223,10 +243,25 @@ memr o,0 _1 2
 toX =: 0 ". 'x' ,~ todec
 Dbn_z_ =: 3 : 'todec__y a:'
 Xbn_z_ =: 3 : 'toX__y a:'
+
 dup =: 3 : 0
 b =. conew 'bn'
 I__b =: BNdup I
 b
+)
+
+tobin =: 3 : 0
+i =. num_bytes I
+s =. i# ' '
+NB.so =. 15!:6 <'s'
+pD o =. BN2bin  (I);s
+NB.memr so,0 i 2
+s
+)
+set =: 3 : 'I =: BNfdec y'
+setbin =: 3 : 0
+i =. # y
+I =: bin2BN y;i;I
 )
 add =: 3 : 0 NB. adds self to y (bn object)
 i =.BNadd I;I;I__y

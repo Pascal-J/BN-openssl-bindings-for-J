@@ -79,7 +79,7 @@ NB. creates an object with roll function that takes word to reduce to.
 lCG =: 3 : 0 NB. returns lcg object class.  y:  modPrimeX addX  SeedX
 (coself a:) new_lcg_ new y
 )
-BBS =: 3 : '(coself a:) new_blum_ pD new y'
+BBS =: 3 : '(coself a:) new_blum_ new y'
 NB. j implementation is same speed at 400bit modulus. 4x slower at 800bit modulus
 lcgj =: 3 : 0
 'p a s' =. y
@@ -106,7 +106,9 @@ roll =: ([: BNmod_word__C S;] [[: BNmod_add__C S;S;A;P;CTX__C [[:BNmod_mul__C S;
 NB. equivalent:
 a =. S,S,M,P,CTX__C
 b =. S,S,A,P,CTX__C
+pD toB__C S
 roll =: ([: BNmod_word__C S;] [[: BNmod_add__C b [[:BNmod_mul__C a"_)"0
+rollbytes =: ( -@] {.[: toB__C S [[: BNmod_add__C b [[:BNmod_mul__C a"_)"0
 1
 )
 new =: 4 : ' (x,&< y) conew coself a:'  NB. x is locale to inherit from
@@ -124,7 +126,9 @@ create =: 3 : 0
 x =. 0 {:: y
 coinsert C =: '' conew x
 'P S ' =: getfrom__C("0) 1{:: y
-roll =: ([: BNmod_word__C S;][ [:BNmod_sqr__C S;S;P;CTX__C"_)"0
+a =. S;S;P;CTX__C
+roll =: ([: BNmod_word__C S;][ [:BNmod_sqr__C a"_)"0
+rollbytes =: ( -@] {. [: toB__C S [ [:BNmod_sqr__C a"_)"0
 1
 )
 new =: 4 : ' (x,&< y) conew coself a:'  NB. x is locale to inherit from
