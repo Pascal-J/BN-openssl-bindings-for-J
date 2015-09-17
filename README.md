@@ -45,7 +45,7 @@ The noun MANAGED in any of the context locales holds the pointers or objects.  r
 BN creators with a M suffix offer memory managed counterparts compared to ones that require manual freeing.
 
 Testing on other platforms:  
-This was written on windows 64 bit J8.02 or higher.  If it doesn't work on your platform, it can probably be fixed in the line near the top of bn.ijs.  That line does work for mac systems I've tried in the past.
+This was written on windows 64 bit J8.02 or higher.  If it doesn't work on your platform, it can probably be fixed in the line near the top of bn.ijs.  The line does work for recent mac systems.  And andoid 4.4 (referencing /system/lib/libcrypto.so).  Openssl version of at least 1.0 should work.
 OPENSSL =: ...
 
 I'd appreciate any corrections to that line needed for your platform.
